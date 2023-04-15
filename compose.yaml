@@ -1,0 +1,49 @@
+version: '3'
+
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    volumes:
+      - /path/to/jellyfin/config:/config
+      - /path/to/jellyfin/cache:/cache
+      - /path/to/media:/media
+    ports:
+      - "8096:8096"
+      - "8920:8920"
+    environment:
+      - TZ=Europe/Paris
+      - UMASK_SET=022
+
+  nextcloud:
+    image: nextcloud:latest
+    container_name: nextcloud
+    restart: unless-stopped
+    volumes:
+      - /path/to/nextcloud/data:/var/www/html/data
+    environment:
+      - TZ=Europe/Paris
+    ports:
+      - "8888:80"
+
+  openvpn:
+    image: arm32v7/openvpn
+    container_name: openvpn
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+    ports:
+      - "1194:1194/udp"
+    volumes:
+      - /path/to/openvpn:/etc/openvpn
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      - "EASYRSA_BATCH=1"
+      - "EASYRSA_REQ_COUNTRY=FR"
+      - "EASYRSA_REQ_PROVINCE=Ile-de-France"
+      - "EASYRSA_REQ_CITY=Paris"
+      - "EASYRSA_REQ_ORG=MyOrg"
+      - "EASYRSA_REQ_EMAIL=vpn@example.com"
+      - "EASYRSA_REQ_OU=MyOU"
+    command: ovpn_run --remote-cert-tls client
